@@ -8,7 +8,7 @@ const tarefasExchangeName = 'tarefas_exchange';
 const anotacoesExchangeName = 'anotacoes_exchange';
 
 // Dados temporários para armazenar tarefas e anotações
-const tarefas = {};
+const tarefas = [];
 const anotacoesPorTarefaId = {};
 
 // Conecta-se ao RabbitMQ
@@ -28,7 +28,7 @@ async function conectarAoRabbitMQ() {
     // Callback chamada quando um evento de tarefa é recebido
     const callbackTarefa = (msg) => {
         const tarefa = JSON.parse(msg.content.toString());
-        tarefas[tarefa.contador] = tarefa;
+        tarefas[tarefa.id] = tarefa;
     };
 
     // Registra o callback para processar eventos de tarefa
@@ -62,7 +62,7 @@ app.get('/colecao-tarefas', (req, res) => {
     const colecaoTarefas = Object.values(tarefas).map((tarefa) => {
         return {
             ...tarefa,
-            anotacoes: anotacoesPorTarefaId[tarefa.contador] || [],
+            anotacoes: anotacoesPorTarefaId[tarefa.id] || [],
         };
     });
 
