@@ -4,6 +4,16 @@ const amqp = require('amqplib');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+    );
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    next();
+  });
 
 const tarefas = [];
 let id = -1;
@@ -27,14 +37,15 @@ async function enviarEventoTarefaCriada(tarefa) {
     await connection.close();
 }
 
-app.get('/tarefas', (req, res) => {
+app.get('/get/tarefas', (req, res) => {
     res.send(tarefas);
 });
 
-app.post('/tarefas', async (req, res) => {
+app.post('/post/tarefas', async (req, res) => {
     id++;
-    const { texto } = req.body;
-    const novaTarefa = { id, texto };
+    const tarefa = req.body;
+
+    const novaTarefa = { id, tarefa };
 
     // Adiciona a tarefa ao objeto de tarefas
     tarefas[id] = novaTarefa;
