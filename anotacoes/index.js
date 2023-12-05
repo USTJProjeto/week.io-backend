@@ -27,16 +27,16 @@ async function enviarEventoAnotacaoCriada(anotacao) {
     await connection.close();
 }
 
-app.get('/tarefas/:id/anotacoes', (req, res) => {
+app.get('/get/tarefas/:id/anotacoes', (req, res) => {
     res.send(anotacoesPorTarefaId);
 });
 
-app.post('/tarefas/:id/anotacoes', async (req, res) => {
+app.post('/post/tarefas/:id/anotacoes', async (req, res) => {
     const idAnotacoes = uuidv4();
-    const { texto } = req.body;
+    const {anotacao} = req.body;
 
     const anotacoesDaTarefa = anotacoesPorTarefaId[req.params.id] || [];
-    const novaAnotacao = { id: idAnotacoes, texto, tarefaId: req.params.id };
+    const novaAnotacao = { id: idAnotacoes, anotacao, tarefaId: req.params.id };
     anotacoesDaTarefa.push(novaAnotacao);
     anotacoesPorTarefaId[req.params.id] = anotacoesDaTarefa;
 
