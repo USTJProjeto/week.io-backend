@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const amqp = require("amqplib");
 const { v4: uuidv4 } = require("uuid");
 
+const lembretes = [];
+let id = -1;
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -16,13 +18,11 @@ app.use((req, res, next) => {
   next();
 });
 
-const anotacoesPorTarefaId = {};
-
 // Configurações do RabbitMQ
 const exchangeName = "anotacoes_exchange";
 
 // Função para enviar uma mensagem para o barramento de eventos
-async function enviarEventoAnotacaoCriada(anotacao) {
+async function enviarEventoLembreteCriado(lembrete) {
   const connection = await amqp.connect("amqp://localhost");
   const channel = await connection.createChannel();
 
@@ -30,32 +30,29 @@ async function enviarEventoAnotacaoCriada(anotacao) {
   await channel.assertExchange(exchangeName, "fanout", { durable: false });
 
   // Publica a mensagem no tópico (exchange)
-  channel.publish(exchangeName, "", Buffer.from(JSON.stringify(anotacao)));
+  channel.publish(exchangeName, "", Buffer.from(JSON.stringify(lembrete)));
 
   // Fecha a conexão
   await channel.close();
   await connection.close();
 }
 
-app.get("/get/tarefas/:id/anotacoes", (req, res) => {
-  res.send(anotacoesPorTarefaId);
+app.get("/get/lembrete", (req, res) => {
+  res.send(lembretes);
 });
 
-app.post("/post/tarefas/:id/anotacoes", async (req, res) => {
-  const idAnotacoes = uuidv4();
-  const { anotacao } = req.body;
+app.post("/post/lembrete", async (req, res) => {
+  id++;
+  const lembrete = req.body;
+  const novoLembrete = { id, lembrete };
+  lembretes[id] = novoLembrete;
 
-  const anotacoesDaTarefa = anotacoesPorTarefaId[req.params.id] || [];
-  const novaAnotacao = { id: idAnotacoes, anotacao, tarefaId: req.params.id };
-  anotacoesDaTarefa.push(novaAnotacao);
-  anotacoesPorTarefaId[req.params.id] = anotacoesDaTarefa;
+  await enviarEventoLembreteCriado(novoLembrete);
 
-  // Envia a anotação criada para o barramento de eventos
-  await enviarEventoAnotacaoCriada(novaAnotacao);
-
-  res.status(201).send(anotacoesDaTarefa);
+  res.status(201).send(novoLembrete);
+  console.log(novoLembrete);
 });
 
 app.listen(5000, () => {
-  console.log("Anotações. Porta 5000");
+  console.log("Lembretes. Porta 5000");
 });
