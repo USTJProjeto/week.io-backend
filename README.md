@@ -17,10 +17,13 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina antes d
    ```bash
    git clone https://github.com/USTJProjeto/week.io-frontend
 
+```bash
 cd seu-projeto
+
+
 npm install
 npm run dev
-
+```
 
 Configuração do RabbitMQ
 Certifique-se de ter o RabbitMQ instalado e em execução em sua máquina.
